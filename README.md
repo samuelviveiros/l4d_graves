@@ -2,6 +2,8 @@
 
 ## DESCRIPTION: 
 
+This is a SourceMod plugin.
+
 When a survivor dies, a grave appears near his body, and this grave glows through the objects on the map, allowing a quick location from where the survivor died. 
 
 And when the survivor respawn, the grave associated with him disappears.
