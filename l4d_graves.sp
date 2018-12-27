@@ -1,25 +1,42 @@
 /************************************************************************
-  [L4D & L4D2] Graves
+  [L4D & L4D2] Graves (v1.0.0, 2018-12-26)
 
   DESCRIPTION: 
   
     When a survivor dies, a grave appears near his body, and this grave 
     glows through the objects on the map, allowing a quick location from 
-    where the survivor died. This can be useful for use with a defibrillator 
-    (L4D2), or even for those who use the "Emergency Treatment With First 
-    Aid Kit Revive And CPR" (L4D) plugin, for example. 
-	
+    where the survivor died. 
+
+    And when the survivor respawns, the grave associated with him disappears.
+
+    In addition, there are six types of grave that are chosen randomly.
+
+    Maybe can be useful for use with a defibrillator (L4D2), or even for 
+    those who use the "Emergency Treatment With First Aid Kit Revive And 
+    CPR" (L4D) plugin, for example.
+
     Anyway, I made this more for fun than for some utility.
 
-    This plugin is also based on the Tuty plugin (CSS Graves). It can be
-    found here:
+    This plugin is also based on the Tuty plugin (CSS Graves), which can 
+    be found here:
 
     https://forums.alliedmods.net/showthread.php?p=867275
 
+    But I rewrote all the code to run on Left 4 Dead 1 & 2.
+
+    This code can be found on my github page here:
+
+    https://github.com/samuelviveiros/l4d_graves
+
+    Have fun!
 
   CHANGELOG:
 
-  Version 1.0.0 -- 2018-12-26
+  2018-12-27 (v1.0.1)
+    - Function RemoveEntity has been replaced by function AcceptEntityInput, 
+	passing the "Kill" parameter, so that it work with the online compiler.
+
+  2018-12-26 (v1.0.0)
     - Initial release.
 
  ************************************************************************/
@@ -41,10 +58,10 @@
 public Plugin myinfo = 
 {
 	name = "[L4D & L4D2] Graves",
-	author = "Dartz8901",
+	author = "samuelviveiros a.k.a Dartz8901",
 	description = "When a survivor die, on his body appear a grave.",
 	version = PLUGIN_VERSION,
-	url = ""
+	url = "https://github.com/samuelviveiros/l4d_graves"
 };
 
 #define SOLID_BBOX_SM	2
@@ -118,12 +135,14 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 
 public void OnPluginStart()
 {
-	HookEvent("player_death", Event_PlayerDeath);
-	CreateConVar("l4d_graves_version", PLUGIN_VERSION, "Graves Version", FCVAR_REPLICATED | FCVAR_NOTIFY);
+	CreateConVar("l4d_graves_version", PLUGIN_VERSION, "[L4D & L4D2] Graves version", FCVAR_REPLICATED | FCVAR_NOTIFY);
 	g_hGravesEnabled 	= CreateConVar("l4d_graves_enable", "1", "Enable or disable this plugin.", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 	g_hGraveGlow 		= CreateConVar("l4d_graves_glow", "1", "Turn glow On or Off.", FCVAR_NOTIFY, true, 0.0, true, 1.0);
 	g_hGraveGlowColor 	= CreateConVar("l4d_graves_glowcolor", "255 255 255", "RGB Color - Change the render color of the glow. Values between 0-255. Note: Only for Left 4 Dead 2.", FCVAR_NOTIFY);
 	g_hGraveHealth 		= CreateConVar("l4d_graves_health", "1500", "Number of points of damage to take before breaking. For Left 4 Dead 2, 0 means don't break.", FCVAR_NOTIFY);
+
+	HookEvent("player_death", Event_PlayerDeath);
+
 	AutoExecConfig(true, "l4d_graves");
 }
 
@@ -140,12 +159,15 @@ public Action Event_PlayerDeath(Handle event, const char[] name, bool dontBroadc
 	if( GetConVarInt(g_hGravesEnabled) == 1 )
 	{
 		int victim = GetClientOfUserId(GetEventInt(event, "userid"));
+		
 		if( GetClientTeam(victim) != 2 )
 		{
 			return Plugin_Handled;
 		}
+		
 		float origin[3];
 		GetClientAbsOrigin(victim, origin);
+		
 		DataPack pack;
 		CreateDataTimer(5.0, Timer_SpawnGrave, pack);
 		pack.WriteFloat(origin[0]);
@@ -161,6 +183,7 @@ public Action Timer_SpawnGrave(Handle timer, DataPack corpse)
 	int grave = -1;
 	int client;
 	float origin[3];
+
 	corpse.Reset();
 	origin[0] = corpse.ReadFloat();
 	origin[1] = corpse.ReadFloat();
@@ -174,6 +197,7 @@ public Action Timer_SpawnGrave(Handle timer, DataPack corpse)
 		{
 			return Plugin_Stop;
 		}
+
 		DispatchKeyValue(grave, "StartGlowing", (GetConVarInt(g_hGraveGlow)!=0)?"1":"0");
 		SetEntityModel(grave, g_aGraveModels[GetRandomInt(0, 5)]);
 		DispatchSpawn(grave);
@@ -190,6 +214,7 @@ public Action Timer_SpawnGrave(Handle timer, DataPack corpse)
 		{
 			return Plugin_Stop;
 		}
+
 		char buffer[32];
 		GetConVarString(g_hGraveHealth, buffer, sizeof(buffer));
 		DispatchKeyValue(grave, "health", buffer);
@@ -225,7 +250,7 @@ public Action Timer_RemoveGrave(Handle timer, DataPack entities)
 	{
 		if ( IsValidEntity(grave) )
 		{
-			RemoveEntity(grave);
+			AcceptEntityInput(grave, "Kill");
 		}
 		return Plugin_Stop;
 	}
@@ -234,7 +259,7 @@ public Action Timer_RemoveGrave(Handle timer, DataPack entities)
 	{
 		if ( IsValidEntity(grave) )
 		{
-			RemoveEntity(grave);
+			AcceptEntityInput(grave, "Kill");
 		}
 		return Plugin_Stop;
 	}
@@ -243,7 +268,7 @@ public Action Timer_RemoveGrave(Handle timer, DataPack entities)
 	{
 		if ( IsValidEntity(grave) )
 		{
-			RemoveEntity(grave);
+			AcceptEntityInput(grave, "Kill");
 		}
 		return Plugin_Stop;
 	}
