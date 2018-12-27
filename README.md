@@ -1,6 +1,6 @@
-#[L4D & L4D2] Graves
+# [L4D & L4D2] Graves
 
-##DESCRIPTION: 
+## DESCRIPTION: 
 
 When a survivor dies, a grave appears near his body, and this grave glows through the objects on the map, allowing a quick location from where the survivor died. 
 
@@ -13,7 +13,7 @@ This plugin is also based on the Tuty plugin (CSS Graves), which can be found he
 https://forums.alliedmods.net/showthread.php?p=867275
 
 
-##CHANGELOG:
+## CHANGELOG:
 
 Version 1.0.0 -- 2018-12-26
 - Initial release.
